@@ -6,7 +6,12 @@ const location_template = document.querySelector("#location-template")
 const $message_render = document.querySelector("#message-render");
 const $inputForm = document.querySelector("#work");
 
+const { username, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true
+});
 socket.on("everyy", value => {
+  console.log("value", value);
+
   const date = moment(value.date).format("h:m a");
   const html = Mustache.render(message_template, {
     message: value.message,
@@ -60,4 +65,10 @@ document.querySelector("#location").addEventListener("click", () => {
       console.log("location shared");
     });
   });
+});
+socket.emit("join", { username, room }, error => {
+  if (error) {
+    alert(error);
+    location.href = "./";
+  }
 });

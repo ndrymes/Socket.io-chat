@@ -7,6 +7,7 @@ const server = http.createServer(app);
 const io = socket(server);
 const path = require("path");
 const { displayMessage } = require("./utils/message");
+const { addUser } = require("./utils/checkUser");
 const publicDirectoryPath = path.join(__dirname, "./public");
 app.use(express.static(publicDirectoryPath));
 
@@ -18,8 +19,20 @@ io.on("connection", socket => {
     io.emit("everyy", displayMessage(val));
     callback();
   });
+  socket.on("join", ({ username, room }, callback) => {
+    const { error, user } = addUser({ id: socket.id, username, room });
+    if (error) {
+      console.log("error from joind", error);
+      return callback(error);
+    }
+    console.log(user.room);
 
-  socket.broadcast.emit("everyy", displayMessage("a user has joined"));
+    socket.join(user.room);
+    socket.broadcast
+      .to(user.room)
+      .emit("everyy", displayMessage(`${user.username} has joined`));
+    callback();
+  });
 
   socket.on("location", (position, callback) => {
     const val_send = `https://google.com/maps?q=${position.lat},${position.long}`;
